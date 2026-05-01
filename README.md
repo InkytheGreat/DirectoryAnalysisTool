@@ -1,7 +1,7 @@
 # Directory Analysis Tool
 ### Disk Usage Treemap and Tree Viewer
 
-The Directory Analysis Tool is a C#/.NET Windows desktop application designed to solve the problem of visualizing massive hierarchical datasets. By mimicking the core functionality of tools like WinDirStat or TreeSize, this project showcases an application of N Trees, recursive algorithms, and asynchronous hardware optimization.
+The Directory Analysis Tool is a C#/.NET Windows desktop application designed to solve the problem of visualizing massive hierarchical datasets. By mimicking the core functionality of tools like WinDirStat or TreeSize, this project showcases an application of N-ary Trees, recursive algorithms, and asynchronous hardware optimization.
 
 ---
 
@@ -22,16 +22,21 @@ Modern storage devices can contain millions of files. Visualizing this data pres
 
 ---
 
+## Data Structures Utilized
+
+To efficiently process and render the file system, the application leverages multiple core data structures:
+
+* **Trees:** The foundational data structure of the application is the N-ary Tree. The `DirectoryNode` class acts as the tree structure where each node can have N children (subdirectories) and multiple leaf nodes (files). Total size is calculated using a post-order traversal logic where a parent’s size is the sum of its files plus the size of all its children.
+* **Arrays and Lists:** Dynamic lists (`List<T>`) are used extensively to store the variable number of files and folders inside each directory node. `ObservableCollection<T>` (a specialized list) is used to bind the flat visual nodes to the UI. Static arrays are utilized for fixed-size data operations, such as mapping file size suffixes (B, KB, MB, GB).
+* **Stacks and Queues:** The application utilizes the system's **Call Stack** via recursive algorithms to traverse the directory tree (Depth-First Search). The Treemap's "Slice-and-Dice" rendering algorithm also relies on stack-based recursion to sub-divide the UI canvas area proportionally.
+* **Dictionaries and Sets:** Hash-based dictionaries are heavily utilized in the testing environment. The `System.IO.Abstractions` mock file system uses dictionaries to map string paths to mock file data, allowing for O(1) lookup times when simulating disk scans during unit tests. 
+
+---
+
 ## Technical Architecture
 
-### The Core Data Structure: N Tree
-The main datastructure of the application is the `DirectoryNode` class. Each node can have N children (subdirectories).
-* **Nodes:** Represent directories.
-* **Leaves:** Represent files (`FileNode`).
-* **Weight Calculation:** Total size is calculated using a post-order traversal logic where a parent’s `TotalSize` is the sum of its files plus the `TotalSize` of all its children.
-
 ### The Treemap Algorithm
-The visualization uses a recursive algorithm. For every directory:
+The visualization uses a recursive "Slice-and-Dice" algorithm. For every directory:
 1.  Sort children by size (descending).
 2.  Determine the orientation (Vertical or Horizontal) based on the longest axis of the available space.
 3.  Recursively sub-divide the canvas area based on the percentage of space each child occupies.
@@ -39,18 +44,14 @@ The visualization uses a recursive algorithm. For every directory:
 ### MVVM Pattern
 The project strictly follows the Model-View-ViewModel pattern:
 * **View (MainWindow.xaml):** Defines the UI and data-bindings.
-* **ViewModel (MainViewModel.cs):** Controls scanning logic, manages the `ObservableCollections`, and handles UI commands.
+* **ViewModel (MainViewModel.cs):** Controls scanning logic, manages the collections, and handles UI commands.
 * **Model (DirectoryNode.cs):** Plain objects representing the file system structure.
 
 ### Classes & Methods
-The system follows a strict MVVM (Model-View-ViewModel) architectural pattern to decouple the data processing logic from the rendering layer.
-
-
-* **MainViewModel**: The central orchestrator. It contains the AnalyzePathAsync method, which initiates the background thread for disk scanning. It also houses the AddVisualNode recursive method used to calculate Treemap coordinates.
-
-* **DirectoryNode**: An N-ary tree structure where each node represents a directory. It stores metadata such as TotalSize and Percentage, and maintains a list of child DirectoryNodes and FileNodes.
-
-* **VisualNode**: A simplified "flat" model used by the UI. It converts the abstract tree data into concrete geometric properties (X, Y, Width, Height, and Color) for the WPF Canvas.
+The system decouples the data processing logic from the rendering layer:
+* **MainViewModel:** The central orchestrator. It contains the `AnalyzePathAsync` method, which initiates the background thread for disk scanning. It also houses the `AddVisualNode` recursive method used to calculate Treemap coordinates.
+* **DirectoryNode:** An N-ary tree structure representing a directory. It stores metadata such as `TotalSize` and `Percentage`, and maintains lists of child nodes.
+* **VisualNode:** A simplified "flat" model used by the UI. It converts the abstract tree data into concrete geometric properties (X, Y, Width, Height, and Color) for the WPF Canvas.
 
 ---
 
