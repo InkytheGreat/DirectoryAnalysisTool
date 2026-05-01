@@ -42,6 +42,16 @@ The project strictly follows the Model-View-ViewModel pattern:
 * **ViewModel (MainViewModel.cs):** Controls scanning logic, manages the `ObservableCollections`, and handles UI commands.
 * **Model (DirectoryNode.cs):** Plain objects representing the file system structure.
 
+### Classes & Methods
+The system follows a strict MVVM (Model-View-ViewModel) architectural pattern to decouple the data processing logic from the rendering layer.
+
+
+* **MainViewModel**: The central orchestrator. It contains the AnalyzePathAsync method, which initiates the background thread for disk scanning. It also houses the AddVisualNode recursive method used to calculate Treemap coordinates.
+
+* **DirectoryNode**: An N-ary tree structure where each node represents a directory. It stores metadata such as TotalSize and Percentage, and maintains a list of child DirectoryNodes and FileNodes.
+
+* **VisualNode**: A simplified "flat" model used by the UI. It converts the abstract tree data into concrete geometric properties (X, Y, Width, Height, and Color) for the WPF Canvas.
+
 ---
 
 ## Tech Stack
@@ -64,3 +74,15 @@ This application can be compiled into a single, portable executable that runs wi
 3. The portable app will be located in \bin\Release\netX.X\win-x64\publish\.
 
 There is also a standalone portable version available in the releases section of the GitHub repository.
+
+---
+
+## Testing
+This application was tested on my personal PC with multiple drives of various sizes and types.
+
+* **Testing Hardware**: Tested on a 2TB NVMe SSD (Samsung 980 PRO 2TB) and a 8TB HDD (ST8000DM004-2CX188)
+
+* **Methodology**: Using the precompiled exe (available in the Releases) I measured the performance by scanning the root of each drive
+
+* **Results**: Scanning the whole NVMe SSD took about 8 seconds (1.73 TB used). Scanning a folder in the 8TB HDD (1.8 TB in the folder) took 3 seconds (faster than the built in Windows tool)
+
