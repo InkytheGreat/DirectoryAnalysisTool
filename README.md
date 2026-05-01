@@ -1,7 +1,7 @@
 # Directory Analysis Tool
 ### Disk Usage Treemap and Tree Viewer
 
-The Directory Analysis Tool is a C#/.NET Windows desktop application designed to solve the problem of visualizing massive hierarchical datasets. By mimicking the core functionality of tools like WinDirStat or TreeSize, this project showcases an application of N-ary Trees, recursive algorithms, and asynchronous hardware optimization.
+The Directory Analysis Tool is a C#/.NET Windows desktop application designed to solve the problem of visualizing massive file structures. By mimicking the core functionality of tools like WinDirStat or TreeSize, this project showcases an application of N-ary Trees, recursive algorithms, and asynchronous hardware optimization.
 
 ---
 
