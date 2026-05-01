@@ -78,6 +78,15 @@ There is also a standalone portable version available in the releases section of
 ---
 
 ## Testing
+
+### Unit Tests
+Unit testing has been implemented using xUnit and Moq. Four tests are split up between tests for the helper functions and the view model functions.
+
+* **Helper Functions**: Two tests test the FormatBytes function to ensure it returns the correct size and the CalculatePercentages function to ensure it returns the correct percentage ratios
+
+* **MainViewModel Functions**: Two tests use a mock file system to test the AnalyzePathAsync and HighlightNodeByPath functions to ensure they modify the View properly based on the inputs
+
+### Benchmarks
 This application was tested on my personal PC with multiple drives of various sizes and types.
 
 * **Testing Hardware**: Tested on a 2TB NVMe SSD (Samsung 980 PRO 2TB) and a 8TB HDD (ST8000DM004-2CX188)
