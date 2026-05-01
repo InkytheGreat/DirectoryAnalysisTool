@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Management;
+using DirectoryAnalysisTool.Helpers;
+using DirectoryAnalysisTool.Models;
+using System.IO.Abstractions;
 
 namespace DirectoryAnalysisTool
 {
@@ -58,10 +61,14 @@ namespace DirectoryAnalysisTool
         public ICommand ZoomInCommand { get; }
         public ICommand NavigateUpCommand { get; }
 
+        private readonly IFileSystem _fileSystem;
+
         #endregion
 
-        public MainViewModel()
+        public MainViewModel(IFileSystem fileSystem = null)
         {
+
+            _fileSystem = fileSystem ?? new FileSystem();
             VisualNodes = new ObservableCollection<VisualNode>();
             RootDirectories = new ObservableCollection<DirectoryNode>();
 
@@ -162,7 +169,7 @@ namespace DirectoryAnalysisTool
         /// <summary>
         /// The main orchestrator: Scans the drive, calculates sizes, and builds the UI nodes.
         /// </summary>
-        private async Task AnalyzePathAsync(string targetPath)
+        public async Task AnalyzePathAsync(string targetPath)
         {
             CurrentPath = targetPath;
             DirectoryNode rootNode = null;
@@ -171,11 +178,11 @@ namespace DirectoryAnalysisTool
             {
                 // SSDs handle parallel scans well, HDDs do not.
                 bool isSSD = CheckIfDriveIsSSD(targetPath);
-                rootNode = BuildTreeFromPath(new DirectoryInfo(CurrentPath), isSSD);
+                rootNode = BuildTreeFromPath(_fileSystem.DirectoryInfo.New(CurrentPath), isSSD);
 
                 if (rootNode != null && rootNode.TotalSize > 0)
                 {
-                    CalculatePercentages(rootNode, rootNode.TotalSize);
+                    FileUtility.CalculatePercentages(rootNode, rootNode.TotalSize);
                 }
             });
 
@@ -191,7 +198,7 @@ namespace DirectoryAnalysisTool
         /// <summary>
         /// Recursively crawls the file system.
         /// </summary>
-        private DirectoryNode BuildTreeFromPath(DirectoryInfo dirInfo, bool isSolidState)
+        private DirectoryNode BuildTreeFromPath(IDirectoryInfo dirInfo, bool isSolidState)
         {
             var node = new DirectoryNode { Name = dirInfo.Name, FullPath = dirInfo.FullName };
             long localTotalSize = 0;
@@ -386,29 +393,6 @@ namespace DirectoryAnalysisTool
             return false;
         }
 
-        private void CalculatePercentages(DirectoryNode node, long rootTotalSize)
-        {
-            node.Percentage = ((double)node.TotalSize / rootTotalSize) * 100;
-            node.FormattedSize = FormatBytes(node.TotalSize);
-
-            foreach (var child in node.Subdirectories)
-                CalculatePercentages(child, rootTotalSize);
-        }
-
-        private static string FormatBytes(long bytes)
-        {
-            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
-            int counter = 0;
-            decimal number = (decimal)bytes;
-
-            while (Math.Round(number / 1024) >= 1 && counter < suffixes.Length - 1)
-            {
-                number /= 1024;
-                counter++;
-            }
-            return string.Format("{0:n1} {1}", number, suffixes[counter]);
-        }
-
         private bool CheckIfDriveIsSSD(string targetPath)
         {
             try
@@ -442,71 +426,4 @@ namespace DirectoryAnalysisTool
         #endregion
     }
 
-    #region Supporting Data Models
-
-    public class VisualNode : INotifyPropertyChanged
-    {
-        public string Name { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
-        public Brush Color { get; set; }
-        public string FullPath { get; set; }
-        public bool IsDirectory { get; set; }
-
-        private Brush _nodeBorderBrush = Brushes.Black;
-        public Brush NodeBorderBrush
-        {
-            get => _nodeBorderBrush;
-            set { _nodeBorderBrush = value; OnPropertyChanged(nameof(NodeBorderBrush)); }
-        }
-
-        private double _nodeBorderThickness = 1.0;
-        public double NodeBorderThickness
-        {
-            get => _nodeBorderThickness;
-            set { _nodeBorderThickness = value; OnPropertyChanged(nameof(NodeBorderThickness)); }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    }
-
-    public class DirectoryNode : INotifyPropertyChanged
-    {
-        public string Name { get; set; }
-        public string FullPath { get; set; }
-        public long TotalSize { get; set; }
-        public double Percentage { get; set; }
-        public string FormattedSize { get; set; }
-        public List<FileNode> Files { get; set; } = new List<FileNode>();
-        public List<DirectoryNode> Subdirectories { get; set; } = new List<DirectoryNode>();
-
-        private bool _isExpanded;
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set { _isExpanded = value; OnPropertyChanged(nameof(IsExpanded)); }
-        }
-
-        private bool _isSelected;
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    }
-
-    public struct FileNode
-    {
-        public string Name;
-        public string FullPath;
-        public long Size;
-    }
-
-    #endregion
 }

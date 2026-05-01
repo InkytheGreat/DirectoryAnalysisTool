@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="DirectoryAnalysisTool/DirectoryAnalysisTool.csproj" />
+  <Project Path="Tests/DirectoryAnalysisTool.Tests.csproj" Id="fe9ade74-4d4c-436b-bae4-9cf9d33f8cfd" />
 </Solution>
